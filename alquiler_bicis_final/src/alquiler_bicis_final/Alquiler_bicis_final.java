@@ -47,9 +47,7 @@ class ConnectionSingleton {
 }
 
 public class Alquiler_bicis_final {
-
-    public static final String FILA_OCULTA = "Bici ref: 100 (No disponible)";
-   
+  
 
     private JFrame frameTienda;
     private DefaultTableModel modelBici;
@@ -98,16 +96,6 @@ public class Alquiler_bicis_final {
 	initialize();
     }
 
-    /**
-     * Actualiza y bloquea la primera línea de la bd bicis para ocultar la bici 100.
-     */
-//    void actualizaBDprimLinea() {
-//
-//    	modelBici = (DefaultTableModel) table2.getModel();
-//	for (int i = 0; i < modelBici.getColumnCount(); i++) {
-//		modelBici.setValueAt(FILA_OCULTA, 0, i);
-//	}
-//    }
 
     /**
      * Initialize the contents of the frame.
