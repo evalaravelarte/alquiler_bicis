@@ -29,6 +29,9 @@ import javax.swing.JTextField;
 import javax.swing.UIManager;
 import javax.swing.UnsupportedLookAndFeelException;
 import javax.swing.table.DefaultTableModel;
+import javax.swing.table.TableModel;
+
+
 
 
 class ConnectionSingleton {
@@ -110,7 +113,7 @@ public class Alquiler_bicis_final {
 	JLabel lblCUcod;
 	JTable table;
 	JTextField textFieldCodUsuario;
-	JTextField textFieldNomUusario;
+	JTextField textFieldNomUsuario;
 	JLabel lblCUnom;
 	JLabel lblCBcod;
 	JTextField textFieldCodBici;
@@ -143,6 +146,16 @@ public class Alquiler_bicis_final {
 	lblBicisBD.setFont(new Font("Silom", Font.BOLD, 20));
 	lblBicisBD.setBounds(846, 44, 68, 20);
 	frameTienda.getContentPane().add(lblBicisBD);
+	
+	textFieldCodUsuario = new JTextField();
+	textFieldCodUsuario.setBounds(157, 371, 85, 33);
+	frameTienda.getContentPane().add(textFieldCodUsuario);
+	textFieldCodUsuario.setColumns(10);
+	
+	textFieldNomUsuario = new JTextField();
+	textFieldNomUsuario.setColumns(10);
+	textFieldNomUsuario.setBounds(382, 371, 168, 33);
+	frameTienda.getContentPane().add(textFieldNomUsuario);
 
 	modelUsuario = new DefaultTableModel();
 	modelUsuario.addColumn("ID");
@@ -286,10 +299,10 @@ public class Alquiler_bicis_final {
 		    comboBoxBiciDev_rs.close();
 		   
 			con.close();
-		} catch (SQLException e2) {
-		    e2.printStackTrace();
+		} catch (SQLException e1) {
+		    e1.printStackTrace();
 		    System.out.println("Error al cargar cBox 1");
-		    JOptionPane.showMessageDialog(null, e2.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		    JOptionPane.showMessageDialog(null, e1.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		} catch (NullPointerException e2) {
 		    System.out.println("Error al cargar cBox 2");
 		}
@@ -301,28 +314,32 @@ public class Alquiler_bicis_final {
 	btnMostrar.setVisible(false);
 	frameTienda.getContentPane().add(btnMostrar);
 	btnMostrar.doClick();
+	
+	table.addMouseListener(new MouseAdapter() {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			
+			int index = table.getSelectedRow();
+			TableModel model = table.getModel();
+			
+			//Cuando seleccione una fila de la tabla, el dato  del nombre se introducira en el text field, y se podrá editar  
+			textFieldCodUsuario.setText(model.getValueAt(index, 0).toString());
+			textFieldNomUsuario.setText(model.getValueAt(index, 1).toString());
+			textFieldCodUsuario.setEditable(false);
+			
+		}
+	});
 
 	lblCUcod = new JLabel("Código:");
 	lblCUcod.setFont(new Font("Silom", Font.BOLD, 15));
 	lblCUcod.setBounds(78, 379, 81, 17);
 	frameTienda.getContentPane().add(lblCUcod);
 
-	textFieldCodUsuario = new JTextField();
-	textFieldCodUsuario.setBounds(157, 371, 85, 33);
-	frameTienda.getContentPane().add(textFieldCodUsuario);
-	textFieldCodUsuario.setColumns(10);
-
 	lblCUnom = new JLabel("Nombre:");
 	lblCUnom.setFont(new Font("Silom", Font.BOLD, 15));
 	lblCUnom.setBounds(297, 380, 85, 15);
 	frameTienda.getContentPane().add(lblCUnom);
 
-	textFieldNomUusario = new JTextField();
-	textFieldNomUusario.setColumns(10);
-	textFieldNomUusario.setBounds(382, 371, 168, 33);
-	frameTienda.getContentPane().add(textFieldNomUusario);
-
-	
 	lblCBcod = new JLabel("Código:");
 	lblCBcod.setFont(new Font("Silom", Font.BOLD, 15));
 	lblCBcod.setBounds(809, 379, 81, 17);
@@ -371,8 +388,8 @@ public class Alquiler_bicis_final {
 			
 			
 			//Almaceno los códigos del usuario y la bici introducidos
-    		int cod_usuario = (int)comboBoxUsAlq.getSelectedItem();
-    		int cod_bici = (int)comboBoxBiciAlq.getSelectedItem();
+			int cod_usuario = (int)comboBoxUsAlq.getSelectedItem();
+			int cod_bici = (int)comboBoxBiciAlq.getSelectedItem();
     		
     	
 			PreparedStatement alquilarBic_stmt = con.prepareStatement("UPDATE bici SET libre=1 WHERE cod_bici=?");
@@ -406,24 +423,33 @@ public class Alquiler_bicis_final {
 	    public void actionPerformed(ActionEvent e) {
 
 		try {
+			
+			String nombre = textFieldNomUsuario.getText();
+			
+			if(nombre.isEmpty()) {
+				JOptionPane.showMessageDialog(null, "Introduce un nombre", "Error", JOptionPane.ERROR_MESSAGE);
+			}else {
+				Connection con = ConnectionSingleton.getConnection();
+				PreparedStatement crear_pstmt = con.prepareStatement("INSERT INTO usuario(cod_usuario, nombre) VALUES(?,?)");
 
-		    Connection con = ConnectionSingleton.getConnection();
-		    PreparedStatement crear_pstmt = con.prepareStatement("INSERT INTO usuario(cod_usuario, nombre) VALUES(?,?)");
+				crear_pstmt.setInt(1, Integer.parseInt(textFieldCodUsuario.getText()));
+				crear_pstmt.setString(2, textFieldNomUsuario.getText());
+				crear_pstmt.executeUpdate();
+				crear_pstmt.close();
+				con.close();
+				textFieldCodUsuario.setText("");
+				textFieldNomUsuario.setText("");
+				JOptionPane.showMessageDialog(null, "Usuario creado");
+			}
 
-		    crear_pstmt.setInt(1, Integer.parseInt(textFieldCodUsuario.getText()));
-		    crear_pstmt.setString(2, textFieldNomUusario.getText());
-		    crear_pstmt.executeUpdate();
-		    crear_pstmt.close();
-		    con.close();
-		    textFieldCodUsuario.setText("");
-		    textFieldNomUusario.setText("");
-		    JOptionPane.showMessageDialog(null, "Usuario creado");
 
 		} catch (SQLException e1) {
 		    System.out.println("Error: user no creado");
 		    JOptionPane.showMessageDialog(null, e1.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		    textFieldCodUsuario.setText("");
 		}catch(NumberFormatException e2) {
 			JOptionPane.showMessageDialog(null, "Dato inválido\n" + e2.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+			
 		}
 		btnMostrar.doClick();
 		
@@ -431,7 +457,7 @@ public class Alquiler_bicis_final {
 	    }
 	});
 	btnCrearUsuario.setFont(new Font("Silom", Font.BOLD, 15));
-	btnCrearUsuario.setBounds(264, 426, 103, 33);
+	btnCrearUsuario.setBounds(119, 426, 103, 33);
 	frameTienda.getContentPane().add(btnCrearUsuario);
 
 	JButton btnCrearBici = new JButton("Crear");
@@ -453,6 +479,7 @@ public class Alquiler_bicis_final {
 		} catch (SQLException e1) {
 		    System.out.println("Error: bici no creada");
 		    JOptionPane.showMessageDialog(null, e1.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
+		    textFieldCodBici.setText("");
 		}catch(NumberFormatException e2) {
 			JOptionPane.showMessageDialog(null, "Dato inválido\n" + e2.getMessage(), "Error", JOptionPane.ERROR_MESSAGE);
 		}
@@ -468,7 +495,7 @@ public class Alquiler_bicis_final {
 	JLabel lblP = new JLabel("PRECIO:");
 	lblP.setVisible(false);
 	lblP.setFont(new Font("SansSerif", Font.BOLD, 16));
-	lblP.setBounds(497, 702, 68, 24);
+	lblP.setBounds(497, 702, 79, 24);
 	frameTienda.getContentPane().add(lblP);
 	
 	JLabel lblPrecio = new JLabel("");
@@ -534,12 +561,12 @@ public class Alquiler_bicis_final {
 							Duration tiempo_diferencia = Duration.between(alq, hora_devolucion);
 							long tiempo_diferencia_minutos = tiempo_diferencia.toMinutes();
 							
-							
+							System.out.println(tiempo_diferencia_minutos);
 							double precio=0;
 							
 							//Si se pasa de media hora aplico 0.2€ por cada minuto extra
-							if(tiempo_diferencia_minutos > 30) {
-								long tiempo_extra = tiempo_diferencia_minutos - 30;
+							if(tiempo_diferencia_minutos >= 1) {
+								long tiempo_extra = tiempo_diferencia_minutos - 1;
 								precio = tiempo_extra * 0.2;
 							}
 							lblP.setVisible(true);
@@ -570,6 +597,95 @@ public class Alquiler_bicis_final {
 	btnDevolver.setFont(new Font("Silom", Font.BOLD, 15));
 	btnDevolver.setBounds(265, 627, 103, 33);
 	frameTienda.getContentPane().add(btnDevolver);
+	
+	JButton btnEditar = new JButton("Editar");
+	btnEditar.addMouseListener(new MouseAdapter() {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			
+			try {
+				Connection con = ConnectionSingleton.getConnection();
+				PreparedStatement pstmt_editarUs = con.prepareStatement("UPDATE usuario SET nombre = ? WHERE cod_usuario = ?");
+				pstmt_editarUs.setString(1, textFieldNomUsuario.getText());
+				pstmt_editarUs.setInt(2, Integer.parseInt(textFieldCodUsuario.getText()));
+				pstmt_editarUs.executeUpdate();
+				pstmt_editarUs.close();
+				textFieldCodUsuario.setText("");
+				textFieldNomUsuario.setText("");
+				JOptionPane.showMessageDialog(null, "Usuario editado");
+				con.close();
+			}catch(SQLException e1){
+				
+			}
+			
+			btnMostrar.doClick();
+			textFieldCodUsuario.setEditable(true);
+			
+		}
+	});
+	btnEditar.setFont(new Font("Dialog", Font.BOLD, 15));
+	btnEditar.setBounds(252, 426, 100, 33);
+	frameTienda.getContentPane().add(btnEditar);
+	
+	JButton btnBorrar = new JButton("Borrar");
+	btnBorrar.addMouseListener(new MouseAdapter() {
+		@Override
+		public void mouseClicked(MouseEvent e) {
+			
+			try {
+				Connection con = ConnectionSingleton.getConnection();
+				
+				int cod_usuario = Integer.parseInt(textFieldCodUsuario.getText());
+				
+				if(! textFieldCodUsuario.getText().isEmpty()) {
+					
+					PreparedStatement pstmt_usuario = con.prepareStatement("SELECT cod_usuario FROM usuario WHERE cod_usuario=?");
+					pstmt_usuario.setInt(1, cod_usuario);
+					ResultSet rs_us = pstmt_usuario.executeQuery();
+					
+					if(rs_us.next()) {
+						
+						PreparedStatement pstmt_bici = con.prepareStatement("SELECT cod_bici FROM usuario WHERE cod_usuario=? AND cod_bici IS NOT NULL");
+						pstmt_usuario.setInt(1, cod_usuario);
+						ResultSet rs_bici = pstmt_usuario.executeQuery();
+						
+						if(!rs_bici.next()) {
+							int result = JOptionPane.showConfirmDialog(null, "Sure? You want to Delete?", "Delete", JOptionPane.YES_NO_OPTION, JOptionPane.QUESTION_MESSAGE);
+					
+						if (result == JOptionPane.YES_OPTION) {
+							PreparedStatement pstmt_borrarUs = con.prepareStatement("DELETE FROM usuario WHERE cod_usuario = ?");
+							pstmt_borrarUs.setInt(1, Integer.parseInt(textFieldCodUsuario.getText()));
+							pstmt_borrarUs.executeUpdate();
+							pstmt_borrarUs.close();
+							textFieldCodUsuario.setText("");
+							textFieldNomUsuario.setText("");
+							JOptionPane.showMessageDialog(null, "Usuario eliminado");
+						}
+						}else {
+							JOptionPane.showMessageDialog(null, "Usuario tiene bici alquilada","Error", JOptionPane.ERROR_MESSAGE);
+						}
+						
+						
+						
+					}else {
+						JOptionPane.showMessageDialog(null, "Usuario no existente","Error", JOptionPane.ERROR_MESSAGE);
+					}
+				}
+
+			con.close();
+
+						
+			}catch (SQLException e2) {
+				e2.printStackTrace();
+			}
+
+			btnMostrar.doClick();
+			textFieldCodUsuario.setEditable(true);
+		}
+	});
+	btnBorrar.setFont(new Font("Dialog", Font.BOLD, 15));
+	btnBorrar.setBounds(382, 426, 100, 33);
+	frameTienda.getContentPane().add(btnBorrar);
 	
 	
 	
